@@ -19,15 +19,17 @@ class WebErrorHandler extends \yii\web\ErrorHandler
 
     /**
      * Only log the exception here if we haven't handled it below (in handleException)
+     *
+     * @param \Exception $exception
      */
     public function logException($exception)
     {
         if (!$this->inExceptionHandler) {
-            Yii::$app->bugsnag->notifyException($exception);
+            Yii::$app->outlog->notifyException($exception);
         }
         try {
             Yii::error("Caught exception " . get_class($exception) . ": " . (string)$exception,
-                BugsnagComponent::IGNORED_LOG_CATEGORY);
+                OutlogComponent::IGNORED_LOG_CATEGORY);
         } catch (\Exception $e) {
         }
     }
@@ -37,7 +39,7 @@ class WebErrorHandler extends \yii\web\ErrorHandler
      */
     public function handleException($exception)
     {
-        Yii::$app->bugsnag->notifyException($exception);
+        Yii::$app->outlog->notifyException($exception);
         $this->inExceptionHandler = true;
         parent::handleException($exception);
     }
@@ -50,7 +52,7 @@ class WebErrorHandler extends \yii\web\ErrorHandler
         // When running under codeception, a Yii application won't actually exist, so we just have to eat it here...
         if (is_object(Yii::$app)) {
             // Call into Bugsnag client's errorhandler since this will potentially kill the script below
-            Yii::$app->bugsnag->runShutdownHandler();
+            Yii::$app->outlog->runShutdownHandler();
         }
         parent::handleFatalError();
     }
